@@ -58,7 +58,7 @@ namespace LeetCode.Helpers
                 }
             }
 
-            return sb.ToString();
+            return sb.ToString().Trim(',');
         }
 
         // Decodes your encoded data to tree.
