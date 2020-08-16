@@ -8,6 +8,7 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace LeetCode
 {
@@ -68,19 +69,17 @@ namespace LeetCode
 
         public TreeNode RecoverFromPreorder(string S)
         {
-            var s = S;
+            var segments = Parse(S);
             var stack = new Stack<TreeNode>();
 
             // prime the stack with the root node
-            var prevSegment = GetNextSegment(s);
-            s = s.Substring(prevSegment.segmentLength);
+            var prevSegment = segments[0];
             TreeNode root = new TreeNode { val = prevSegment.val };
             stack.Push(root);
 
-            while (s.Length > 0)
+            for(var i = 1; i < segments.Count; ++i)
             {
-                var segment = GetNextSegment(s);
-                s = s.Substring(segment.segmentLength);
+                var segment = segments[i];
                 var node = new TreeNode { val = segment.val };
 
                 if (segment.depth > prevSegment.depth)
@@ -94,7 +93,7 @@ namespace LeetCode
                 }
                 if (segment.depth < prevSegment.depth)
                 {
-                    for(var i = 0; i <= prevSegment.depth - segment.depth; ++i)
+                    for(var j = 0; j <= prevSegment.depth - segment.depth; ++j)
                     {
                         stack.Pop();
                     }
@@ -107,31 +106,19 @@ namespace LeetCode
             return root;
         }
 
-        public (int depth, int val, int segmentLength) GetNextSegment(string s)
+        public List<(int depth, int val)> Parse(string s)
         {
-            var foundNumber = false;
-            var depth = 0;
-            var valStr = "";
-            var segmentLength = 0;
-            for (var i = 0; i < s.Length; ++i)
+            var depthValues = new List<(int depth, int val)>();
+            Regex regex = new Regex("^(-*)(\\d+)");
+            while (s.Length > 0)
             {
-                if (foundNumber && s[i] == '-')
-                {
-                    break;
-                }
-
-                if (s[i] == '-')
-                {
-                    depth++;
-                }
-                else
-                {
-                    foundNumber = true;
-                    valStr += s[i];
-                }
-                segmentLength++;
+                var match = regex.Match(s);
+                var depth = match.Groups[1].Value.Length;
+                var val = match.Groups[2].Value;
+                depthValues.Add((depth, int.Parse(val)));
+                s = s.Substring(match.Value.Length);
             }
-            return (depth, int.Parse(valStr), segmentLength);
+            return depthValues;
         }
     }
 }
